@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # Backend API Server
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: socketmetrics-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5002
+      MONGODB_URI: mongodb+srv://sohamUlwe305:Soham305Ulwe@clusterulwe.49hjd.mongodb.net/socketmetrics?retryWrites=true&w=majority&appName=clusterUlwe
+      MONGODB_DB_NAME: socketmetrics
+    ports:
+      - "5002:5002"
+    networks:
+      - socketmetrics-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5002/api/metrics/status', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend React App
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        REACT_APP_API_URL: http://localhost:5002
+        REACT_APP_WS_URL: ws://localhost:5002
+    container_name: socketmetrics-frontend
+    restart: unless-stopped
+    environment:
+      REACT_APP_API_URL: http://localhost:5002
+      REACT_APP_WS_URL: ws://localhost:5002
+    ports:
+      - "3003:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - socketmetrics-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  socketmetrics-network:
+    driver: bridge 
