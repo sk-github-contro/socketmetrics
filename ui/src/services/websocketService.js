@@ -6,7 +6,7 @@ class WebSocketService {
     this.maxReconnectAttempts = 5;
     this.reconnectDelay = 1000;
     this.listeners = new Set();
-    this.serverUrl = process.env.REACT_APP_WS_URL || 'ws://localhost:5002';
+    this.serverUrl = 'wss://socketmetrics.onrender.com';
   }
 
   connect() {
@@ -49,7 +49,6 @@ class WebSocketService {
   handleMessage(data) {
     console.log('📨 Received WebSocket message:', data.type);
     
-    // Notify all listeners
     this.listeners.forEach(listener => {
       try {
         listener(data);
@@ -95,4 +94,4 @@ class WebSocketService {
   }
 }
 
-export default new WebSocketService(); 
+export default new WebSocketService();
